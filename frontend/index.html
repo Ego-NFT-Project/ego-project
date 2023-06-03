@@ -3,7 +3,9 @@
 
 <head>
     <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
-    <title>Simple Web Page</title>
+    <title>EGO-NFT</title>
+    <link rel="icon" type="image/png" href="./logo.png">
+      <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
     <style>
         #chat {
             width: 300px;
@@ -15,27 +17,72 @@
         #chat input {
             width: 100%;
         }
+        ::placeholder {
+            color: black; /* Change the color to your desired value */
+          }
     </style>
+  
+
 </head>
 
-<body>
-    <h1>Test Page</h1>
-
+<body class="max-w-6xl mx-auto py-10" style="background-color: #FDF7C3;">
+    <header class="mb-8 flex justify-between items-center">
+        <div class="flex items-center">
+        <img style="height:40px" src="./logo.png"/>
+        <h1 style="font-size: 3.4rem;letter-spacing:4px" class="font-bold">-NFT</h1>
+    </div>
+        <div class="flex gap-10">
+        <p id="accountID" class="hidden border border-black border-1 rounded-md p-2 px-4"> </p>
+        <button class="bg-yellow-500 rounded-md p-2 px-4 hover:bg-yellow-400" id="connectBtn">Connect to Metamask</button>
+        <button class="hidden text-white bg-red-600 rounded-md p-2 px-4 hover:bg-red-800" id="disconnectBtn">Log Out</button>
+    </div>
+    </div>
+</div>
+    </header>
+    <script>
+        document.getElementById('connectBtn').addEventListener('click', event => {
+            let account;
+            ethereum.request({method: 'eth_requestAccounts'}).then(accounts => {
+              account = accounts[0];
+             const connectWalletDiv =  document.getElementById('connectBtn')
+             connectWalletDiv.classList.add('hidden')
+             const disconnectWalletDiv =  document.getElementById('disconnectBtn')
+             disconnectWalletDiv.classList.remove('hidden')
+             const accountDiv = document.getElementById('accountID')
+          accountDiv.innerText = account
+          accountDiv.classList.remove('hidden')
+            });
+          });
+          document.getElementById('disconnectBtn').addEventListener('click', event => {
+          
+           
+             const connectWalletDiv =  document.getElementById('connectBtn')
+             connectWalletDiv.classList.remove('hidden')
+             const disconnectWalletDiv =  document.getElementById('disconnectBtn')
+             disconnectWalletDiv.classList.add('hidden')
+             const accountDiv = document.getElementById('accountID')
+          accountDiv.classList.add('hidden')
+            
+          });
+    </script>
+    <form class="flex flex-col gap-5">
+        <h4 class="text-xl text-yellow-600">Enter your NFT Details</h4>
     <!-- Feature 1: NFT URL Input -->
-    <input id="nftUrl" type="text" placeholder="Enter NFT URL here..." />
+    <input id="nftUrl" type="text" placeholder="Enter NFT URL here..." class="block border border-2 border-yellow-500 w-1/3 p-2 text-black bg-yellow-200"/>
 
     <!-- Feature 1: Text Input -->
-    <input id="inputText" type="text" placeholder="Enter text here..." />
-    <button id="submitButton">Submit</button>
+    <input id="inputText" type="text" placeholder="Enter text here..." class="bg-yellow-200 block border border-2 border-yellow-500 w-1/3 p-2 text-black"/>
+    <button id="submitButton" style="width: max-content;" class="bg-yellow-500 rounded-md p-2 px-4 hover:bg-yellow-400">Submit</button>
 
     <!-- Feature 2: Image Display -->
     <div id="imageContainer"></div>
 
     <!-- Feature 3: Chat Service -->
-    <div id="chat">
+    <div id="chat" class="w-full">
         <div id="chatMessages"></div>
-        <input id="chatInput" type="text" placeholder="Type message..." />
+        <textarea style="width: 100%; height:100%" class="p-3 bg-yellow-200 block border border-2 border-yellow-500 text-black" id="chatInput" type="text" placeholder="Type message..." rows="10" cols="30"></textarea>
     </div>
+</form>
     <script>
         // async function getNFTs(userAddress) {
         //     // Known NFT contract address and ABI
@@ -73,7 +120,8 @@
         let messages = [];
 
         // Feature 1: Send text to server
-        document.getElementById('submitButton').addEventListener('click', function () {
+        document.getElementById('submitButton').addEventListener('click', function (e) {
+e.preventDefault()
             let inputText = document.getElementById('inputText').value;
             let nftUrl = document.getElementById('nftUrl').value;
             fetch(`${serverUrl}/generate`, {
