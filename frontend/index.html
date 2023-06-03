@@ -21,11 +21,19 @@
 <body>
     <h1>Test Page</h1>
 
+    <!-- Mint Button -->
+    <div>
+        <input id="inputText" type="text" placeholder="Enter text here..." />
+        <button id="mintButton">Mint</button>
+    </div>
+    
+    <!-- Owned Ego NFT Section -->
+    <div id="ownedEgoNFTs"></div>
+
     <!-- Feature 1: NFT URL Input -->
     <input id="nftUrl" type="text" placeholder="Enter NFT URL here..." />
 
     <!-- Feature 1: Text Input -->
-    <input id="inputText" type="text" placeholder="Enter text here..." />
     <button id="submitButton">Submit</button>
 
     <!-- Feature 2: Image Display -->
@@ -37,40 +45,124 @@
         <input id="chatInput" type="text" placeholder="Type message..." />
     </div>
     <script>
-        // async function getNFTs(userAddress) {
-        //     // Known NFT contract address and ABI
-        //     userAddress = ethers.utils.getAddress(userAddress);
-        //     const contractAddress = ethers.utils.getAddress("0xd4f891b6797cae06e725667b5d465362780114ba");
-        //     // nft abi
-        //     const abi = [ "function balanceOf(address owner) view returns (uint256)", "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)", "function tokenURI(uint256 tokenId) view returns (string)" ];
-        //     const provider = new ethers.providers.Web3Provider(window.ethereum);
-        //     const contract = new ethers.Contract(contractAddress, abi, provider);
-        //     const balance = await contract.balanceOf(userAddress);
+        async function getNFTs(userAddress) {
+            // Known NFT contract address and ABI
+            userAddress = ethers.utils.getAddress(userAddress);
+            const contractAddress = ethers.utils.getAddress("0xd4f891b6797cae06e725667b5d465362780114ba");
+            // nft abi
+            const abi = [ "function balanceOf(address owner) view returns (uint256)", "function ownerOf(uint256 tokenId) view returns (address)", "function tokenURI(uint256 tokenId) view returns (string)" ];
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const contract = new ethers.Contract(contractAddress, abi, provider);
+            const balance = await contract.balanceOf(userAddress);
+            const tokenIds = [];
+            let tokenId = 1;
+            while (tokenIds.length < balance) {
+                const owner = await contract.ownerOf(tokenId);
+                if (owner === userAddress) {
+                    tokenIds.push(tokenId);
+                }
+            }
 
-        //     const tokenIds = [];
-        //     for(let i = 0; i < balance; i++) {
-        //         const tokenId = await contract.tokenOfOwnerByIndex(userAddress, i);
-        //         tokenIds.push(tokenId);
-        //     }
+            const tokenURIs = [];
+            for (const tokenId of tokenIds) {
+                const tokenURI = await contract.tokenURI(tokenId);
+                tokenURIs.push(tokenURI);
+            }
 
-        //     const tokenURIs = [];
-        //     for (const tokenId of tokenIds) {
-        //         const tokenURI = await contract.tokenURI(tokenId);
-        //         tokenURIs.push(tokenURI);
-        //     }
+            // tokenURIs now contains the URIs of the user's NFTs
+            console.log(tokenURIs);
+        }
 
-        //     // tokenURIs now contains the URIs of the user's NFTs
-        //     console.log(tokenURIs);
-        // }
+        async function getEgoNFT(userAddress) {
+            userAddress = ethers.utils.getAddress(userAddress);
+            const contractAddress = ethers.utils.getAddress("0xc68608fbc21320766e8b26e47c3bfd3618dea699");
+            // nft abi
+            const abi = [
+                "function balanceOf(address owner) view returns (uint256)", 
+                "function ownerOf(uint256 tokenId) view returns (address)", 
+                "function ego(uint256 tokenId) view returns (string)", 
+            ];
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const contract = new ethers.Contract(contractAddress, abi, provider);
+            const balance = await contract.balanceOf(userAddress);
+            const tokenIds = [];
+            let tokenId = 1;
+            while (tokenIds.length < balance) {
+                console.log(tokenId)
+                const owner = await contract.ownerOf(tokenId);
+                if (owner === userAddress) {
+                    tokenIds.push(tokenId);
+                }
+                tokenId++;
+            }
+            console.log(tokenIds)
 
-        // // connect metamask
-        // window.ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => {
-        //     getNFTs(accounts[0])
-        // })
+            for (const tokenId of tokenIds) {
+                console.log(tokenId)
+                const ego = await contract.ego(tokenId);
+                // add to ownedEgoNFTs
+                let ownedEgoNFTs = document.getElementById('ownedEgoNFTs');
+
+                // egoNFT is click and selectable
+                let egoNFT = document.createElement('div');
+                egoNFT.innerHTML = ego;
+                egoNFT.addEventListener('click', function() {
+                    console.log(ego);
+                    document.getElementById('inputText').value = ego;
+                });
+                ownedEgoNFTs.appendChild(egoNFT);
+            }
+
+            // tokenURIs now contains the URIs of the user's NFTs
+            console.log(tokenURIs);
+        }
+
+        async function mint(userAddress, tokenId, ego, nftAddress, nftId) {
+            const contractAddress = ethers.utils.getAddress("0xc68608fbc21320766e8b26e47c3bfd3618dea699");
+
+            const abi = [
+                // ...other function definitions...
+                {
+                    "inputs": [
+                        {"internalType": "address", "name": "to", "type": "address"},
+                        {"internalType": "uint256", "name": "tokenId", "type": "uint256"},
+                        {"internalType": "string", "name": "_ego", "type": "string"},
+                        {"internalType": "address", "name": "nftAddress", "type": "address"},
+                        {"internalType": "uint256", "name": "nftId", "type": "uint256"}
+                    ],
+                    "stateMutability": "nonpayable",
+                    "name": "mint",
+                    "type": "function"
+                },
+                // ...other function definitions...
+            ];
+
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(contractAddress, abi, signer);
+
+            const tx = await contract.mint(userAddress, tokenId, ego, nftAddress, nftId);
+            await tx.wait(); // Wait for the transaction to be mined
+            console.log(`Minted token ${tokenId} to ${to}`);
+
+        }
+        
+        let account = "";
+        // connect metamask
+        window.ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => {
+            getEgoNFT(accounts[0])
+            account = accounts[0];
+        })
 
         let serverUrl = "http://ec2-13-125-193-63.ap-northeast-2.compute.amazonaws.com:8080"
 
         let messages = [];
+
+        // Mint Button
+        document.getElementById('mintButton').addEventListener('click', function () {
+            let inputText = document.getElementById('inputText').value;
+            mint(account, 2, inputText, "0xd4f891b6797cae06e725667b5d465362780114ba", 1)
+        })
 
         // Feature 1: Send text to server
         document.getElementById('submitButton').addEventListener('click', function () {
