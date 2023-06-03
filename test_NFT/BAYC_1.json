@@ -1,0 +1,33 @@
+{
+    "image": "https://ipfs.io/ipfs/QmSSYqG7FmhYsD8X7awq1dgE8J4avUtc3Ddm7vtYq49MTU",
+    "attributes": [
+        {
+            "trait_type": "Clothes",
+            "value": "Puffy Vest"
+        },
+        {
+            "trait_type": "Eyes",
+            "value": "Bored"
+        },
+        {
+            "trait_type": "Background",
+            "value": "Aquamarine"
+        },
+        {
+            "trait_type": "Mouth",
+            "value": "Bored Dagger"
+        },
+        {
+            "trait_type": "Fur",
+            "value": "Dark Brown"
+        },
+        {
+            "trait_type": "Hat",
+            "value": "Spinner Hat"
+        },
+        {
+            "trait_type": "Earring",
+            "value": "Silver Stud"
+        }
+    ]
+}
