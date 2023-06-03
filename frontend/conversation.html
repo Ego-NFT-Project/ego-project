@@ -4,15 +4,20 @@
 <head>
     <title>Simple Web Page</title>
     <style>
-        #chat {
+        .chat {
             width: 300px;
             height: 400px;
             border: 1px solid #ccc;
             overflow: auto;
         }
 
-        #chat input {
+        .chat input {
             width: 100%;
+        }
+
+        #container {
+            display: flex;
+            justify-content: space-around;
         }
     </style>
 </head>
@@ -20,29 +25,51 @@
 <body>
     <h1>Test Page</h1>
 
-    <!-- Feature 1: Text Input -->
-    <input id="inputText" type="text" placeholder="Enter text here..." />
-    <button id="submitButton">Submit</button>
+    <div id="container">
+        <!-- Assistant 1 -->
+        <div id="assistant1">
+            <h2>Assistant 1</h2>
 
-    <!-- Feature 2: Image Display -->
-    <div id="imageContainer"></div>
+            <!-- Feature 1: Text Input -->
+            <input id="inputText1" type="text" placeholder="Enter text here..." />
+            <button id="submitButton1">Submit</button>
 
-    <!-- Feature 3: Chat Service -->
-    <div id="chat">
-        <div id="userChatMessages"></div>
-        <div id="assistantChatMessages"></div>
-        <input id="chatInput" type="text" placeholder="Type message..." />
+            <!-- Feature 2: Image Display -->
+            <div id="imageContainer1"></div>
+
+            <!-- Feature 3: Chat Service -->
+            <div class="chat">
+                <div id="chatMessages1"></div>
+                <input id="chatInput1" type="text" placeholder="Type message..." />
+            </div>
+        </div>
+
+        <!-- Assistant 2 -->
+        <div id="assistant2">
+            <h2>Assistant 2</h2>
+
+            <!-- Feature 1: Text Input -->
+            <input id="inputText2" type="text" placeholder="Enter text here..." />
+            <button id="submitButton2">Submit</button>
+
+            <!-- Feature 2: Image Display -->
+            <div id="imageContainer2"></div>
+
+            <!-- Feature 3: Chat Service -->
+            <div class="chat">
+                <div id="chatMessages2"></div>
+                <input id="chatInput2" type="text" placeholder="Type message..." />
+            </div>
+        </div>
     </div>
 
     <script>
-
         let serverUrl = "http://ec2-13-125-193-63.ap-northeast-2.compute.amazonaws.com:8080"
 
-        let messages = [];
-
-        // Feature 1: Send text to server
-        document.getElementById('submitButton').addEventListener('click', function () {
-            let inputText = document.getElementById('inputText').value;
+        let messages1 = [];
+        let messages2 = [];
+        
+        submit = (inputText, imageContainer, messages) => {
             fetch(`${serverUrl}/generate`, {
                 method: 'POST',
                 headers: {
@@ -56,7 +83,6 @@
                     let img = document.createElement('img');
                     img.src = data.image_url;
                     // remove previous image
-                    let imageContainer = document.getElementById('imageContainer');
                     if (imageContainer.hasChildNodes()) {
                         imageContainer.removeChild(imageContainer.childNodes[0]);
                     }
@@ -83,45 +109,67 @@
                 .catch((error) => {
                     console.error('Error:', error);
                 });
+        }
+
+        async function chat (chatInput, messages, chatMessages) {
+            // we should send the whole chat history to the server
+            // so that the server can generate a response based on the whole chat history
+            messages.push({
+                "role": "user", "content": chatInput
+            })
+
+            let response = await fetch(`${serverUrl}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ messages: messages }),
+            })
+            let data = await response.json()
+            let p = document.createElement('p');
+            p.textContent = data.message;
+            chatMessages.appendChild(p);
+            messages.push({
+                "role": "assistant", "content": data.message
+            })
+            return data.message;
+        }
+
+        async function startConversation (initial_message) {
+            let message = await chat(initial_message, messages1, document.getElementById('chatMessages1'));
+            message = await chat(message, messages2, document.getElementById('chatMessages2'));
+            message = await chat(message, messages1, document.getElementById('chatMessages1'));
+            message = await chat(message, messages2, document.getElementById('chatMessages2'));
+            message = await chat(message, messages1, document.getElementById('chatMessages1'));
+            message = await chat(message, messages2, document.getElementById('chatMessages2'));
+            message = await chat(message, messages1, document.getElementById('chatMessages1'));
+            message = await chat(message, messages2, document.getElementById('chatMessages2'));
+            message = await chat(message, messages1, document.getElementById('chatMessages1'));
+            message = await chat(message, messages2, document.getElementById('chatMessages2'));
+        }
+
+        // Feature 1: Send text to server for assistant 1
+        document.getElementById('submitButton1').addEventListener('click', function () {
+            let inputText = document.getElementById('inputText1').value;
+            submit(inputText, document.getElementById('imageContainer1'), messages1);            
         });
 
-        // Feature 3: Chat Service
-        document.getElementById('chatInput').addEventListener('keypress', function (e) {
-            if (e.which == 13) {  // Enter key
-                let chatInput = document.getElementById('chatInput').value;
+        // Feature 1: Send text to server for assistant 2
+        document.getElementById('submitButton2').addEventListener('click', function () {
+            let inputText = document.getElementById('inputText2').value;
+            submit(inputText, document.getElementById('imageContainer2'), messages2);
+        });
 
-                // Add user message to user's chat box
-                let userMessage = document.createElement('p');
-                userMessage.textContent = chatInput;
-                document.getElementById('userChatMessages').appendChild(userMessage);
+        // Feature 3: Chat Service for assistant 1
+        document.getElementById('chatInput1').addEventListener('keypress', function (e) {
+            if (e.which != 13) return;
+            startConversation(document.getElementById('chatInput1').value);
+        });
 
-                messages.push({
-                    "role": "user", "content": chatInput
-                })
-
-                fetch(`${serverUrl}/chat`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ messages: messages }),
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Add assistant message to assistant's chat box
-                        let assistantMessage = document.createElement('p');
-                        assistantMessage.textContent = data.message;
-                        document.getElementById('assistantChatMessages').appendChild(assistantMessage);
-                        
-                        document.getElementById('chatInput').value = '';
-                        messages.push({
-                            "role": "assistant", "content": data.message
-                        })
-                    })
-                    .catch((error) => {
-                        console.error('Error:', error);
-                    });
-            }
+        // Feature 3: Chat Service for assistant 2
+        document.getElementById('chatInput2').addEventListener('keypress', function (e) {
+            if (e.which != 13) return;
+            chat(document.getElementById('chatInput2').value, messages2);
         });
     </script>
 </body>

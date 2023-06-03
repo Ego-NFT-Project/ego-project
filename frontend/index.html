@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
     <title>Simple Web Page</title>
     <style>
         #chat {
@@ -20,6 +21,9 @@
 <body>
     <h1>Test Page</h1>
 
+    <!-- Feature 1: NFT URL Input -->
+    <input id="nftUrl" type="text" placeholder="Enter NFT URL here..." />
+
     <!-- Feature 1: Text Input -->
     <input id="inputText" type="text" placeholder="Enter text here..." />
     <button id="submitButton">Submit</button>
@@ -32,8 +36,37 @@
         <div id="chatMessages"></div>
         <input id="chatInput" type="text" placeholder="Type message..." />
     </div>
-
     <script>
+        // async function getNFTs(userAddress) {
+        //     // Known NFT contract address and ABI
+        //     userAddress = ethers.utils.getAddress(userAddress);
+        //     const contractAddress = ethers.utils.getAddress("0xd4f891b6797cae06e725667b5d465362780114ba");
+        //     // nft abi
+        //     const abi = [ "function balanceOf(address owner) view returns (uint256)", "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)", "function tokenURI(uint256 tokenId) view returns (string)" ];
+        //     const provider = new ethers.providers.Web3Provider(window.ethereum);
+        //     const contract = new ethers.Contract(contractAddress, abi, provider);
+        //     const balance = await contract.balanceOf(userAddress);
+
+        //     const tokenIds = [];
+        //     for(let i = 0; i < balance; i++) {
+        //         const tokenId = await contract.tokenOfOwnerByIndex(userAddress, i);
+        //         tokenIds.push(tokenId);
+        //     }
+
+        //     const tokenURIs = [];
+        //     for (const tokenId of tokenIds) {
+        //         const tokenURI = await contract.tokenURI(tokenId);
+        //         tokenURIs.push(tokenURI);
+        //     }
+
+        //     // tokenURIs now contains the URIs of the user's NFTs
+        //     console.log(tokenURIs);
+        // }
+
+        // // connect metamask
+        // window.ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => {
+        //     getNFTs(accounts[0])
+        // })
 
         let serverUrl = "http://ec2-13-125-193-63.ap-northeast-2.compute.amazonaws.com:8080"
 
@@ -42,12 +75,16 @@
         // Feature 1: Send text to server
         document.getElementById('submitButton').addEventListener('click', function () {
             let inputText = document.getElementById('inputText').value;
+            let nftUrl = document.getElementById('nftUrl').value;
             fetch(`${serverUrl}/generate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ characteristics: inputText }),
+                body: JSON.stringify({ 
+                    characteristics: inputText, 
+                    image_url: nftUrl
+                }),
             })
                 .then(response => response.json())
                 .then(data => {
