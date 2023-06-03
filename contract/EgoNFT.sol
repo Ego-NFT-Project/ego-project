@@ -21,21 +21,34 @@ contract EgoNFT is ERC721, Ownable {
         address to,
         uint256 tokenId,
         string memory _ego,
-        address nftAddress,
-        uint256 nftId
+        address _nftAddress,
+        uint256 _nftId
     ) public onlyOwner {
         // Check that 'to' is the owner of the external NFT
         require(
-            IERC721(nftAddress).ownerOf(nftId) == to,
+            IERC721(_nftAddress).ownerOf(_nftId) == to,
             "The address is not the owner of the external NFT"
         );
         _mint(to, tokenId);
-        Ego memory newEgo = Ego(_ego, nftAddress, nftId);
+        Ego memory newEgo = Ego(_ego, _nftAddress, _nftId);
         _egos[tokenId] = newEgo;
     }
 
-    function ego(uint256 tokenId) public view returns (Ego memory) {
+    function ego(uint256 tokenId) public view returns (string memory) {
         require(_exists(tokenId), "ERC721: queried token does not exist");
-        return _egos[tokenId];
+        Ego memory myEgo = _egos[tokenId];
+        return myEgo.ego;
+    }
+
+    function nftAddress(uint256 tokenId) public view returns (address) {
+        require(_exists(tokenId), "ERC721: queried token does not exist");
+        Ego memory myEgo = _egos[tokenId];
+        return myEgo.nftAddress;
+    }
+
+    function nftId(uint256 tokenId) public view returns (uint256) {
+        require(_exists(tokenId), "ERC721: queried token does not exist");
+        Ego memory myEgo = _egos[tokenId];
+        return myEgo.nftId;
     }
 }
