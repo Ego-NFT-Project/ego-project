@@ -8,8 +8,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract EgoNFT is ERC721, Ownable {
     struct Ego {
-        string image;
-        string voice;
+        string ego;
         address nftAddress;
         uint256 nftId;
     }
@@ -21,8 +20,7 @@ contract EgoNFT is ERC721, Ownable {
     function mint(
         address to,
         uint256 tokenId,
-        string memory image,
-        string memory voice,
+        string memory _ego,
         address nftAddress,
         uint256 nftId
     ) public onlyOwner {
@@ -32,7 +30,7 @@ contract EgoNFT is ERC721, Ownable {
             "The address is not the owner of the external NFT"
         );
         _mint(to, tokenId);
-        Ego memory newEgo = Ego(image, voice, nftAddress, nftId);
+        Ego memory newEgo = Ego(_ego, nftAddress, nftId);
         _egos[tokenId] = newEgo;
     }
 
