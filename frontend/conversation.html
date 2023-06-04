@@ -5,7 +5,7 @@
     <title>Simple Web Page</title>
     <style>
         .chat {
-            width: 300px;
+            width: 512px;
             height: 400px;
             border: 1px solid #ccc;
             overflow: auto;
@@ -68,14 +68,17 @@
 
         let messages1 = [];
         let messages2 = [];
+
+        let voiceId1 = "Joanna";
+        let voiceId2 = "Matthew";
         
-        submit = (inputText, imageContainer, messages) => {
+        submit = (image_url, inputText, imageContainer, messages) => {
             fetch(`${serverUrl}/generate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ characteristics: inputText }),
+                body: JSON.stringify({ characteristics: inputText, image_url: image_url }),
             })
                 .then(response => response.json())
                 .then(data => {
@@ -111,7 +114,7 @@
                 });
         }
 
-        async function chat (chatInput, messages, chatMessages) {
+        async function chat (chatInput, messages, chatMessages, voiceId) {
             // we should send the whole chat history to the server
             // so that the server can generate a response based on the whole chat history
             messages.push({
@@ -126,38 +129,55 @@
                 body: JSON.stringify({ messages: messages }),
             })
             let data = await response.json()
-            let p = document.createElement('p');
-            p.textContent = data.message;
-            chatMessages.appendChild(p);
+            let div = document.createElement('div');
+            // div has chat message and audio button
+            div.innerHTML = `
+                <div class="chatMessage">
+                    <div class="chatMessageContent">
+                        ${data.message}
+                    </div>
+                    <div class="chatMessageAudio">
+                        <audio controls>
+                            <source src="${serverUrl}/synthesize?voiceId=${voiceId}&text=${encodeURIComponent(data.message)}" type="audio/mpeg">
+                        </audio>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(div);
             messages.push({
                 "role": "assistant", "content": data.message
             })
+
+            // wait for 20 seconds
+            await new Promise(r => setTimeout(r, 20*1000));
+            // stop the audio
+            div.querySelector('audio').pause();
             return data.message;
         }
 
         async function startConversation (initial_message) {
-            let message = await chat(initial_message, messages1, document.getElementById('chatMessages1'));
-            message = await chat(message, messages2, document.getElementById('chatMessages2'));
-            message = await chat(message, messages1, document.getElementById('chatMessages1'));
-            message = await chat(message, messages2, document.getElementById('chatMessages2'));
-            message = await chat(message, messages1, document.getElementById('chatMessages1'));
-            message = await chat(message, messages2, document.getElementById('chatMessages2'));
-            message = await chat(message, messages1, document.getElementById('chatMessages1'));
-            message = await chat(message, messages2, document.getElementById('chatMessages2'));
-            message = await chat(message, messages1, document.getElementById('chatMessages1'));
-            message = await chat(message, messages2, document.getElementById('chatMessages2'));
+            let message = await chat(initial_message, messages1, document.getElementById('chatMessages1'), voiceId1);
+            message = await chat(message, messages2, document.getElementById('chatMessages2'), voiceId2);
+            message = await chat(message, messages1, document.getElementById('chatMessages1'), voiceId1);
+            message = await chat(message, messages2, document.getElementById('chatMessages2'), voiceId2);
+            message = await chat(message, messages1, document.getElementById('chatMessages1'), voiceId1);
+            message = await chat(message, messages2, document.getElementById('chatMessages2'), voiceId2);
+            message = await chat(message, messages1, document.getElementById('chatMessages1'), voiceId1);
+            message = await chat(message, messages2, document.getElementById('chatMessages2'), voiceId2);
+            message = await chat(message, messages1, document.getElementById('chatMessages1'), voiceId1);
+            message = await chat(message, messages2, document.getElementById('chatMessages2'), voiceId2);
         }
 
         // Feature 1: Send text to server for assistant 1
         document.getElementById('submitButton1').addEventListener('click', function () {
             let inputText = document.getElementById('inputText1').value;
-            submit(inputText, document.getElementById('imageContainer1'), messages1);            
+            submit("https://ipfs.io/ipfs/QmYDvPAXtiJg7s8JdRBSLWdgSphQdac8j1YuQNNxcGE1hg/1468.png", inputText, document.getElementById('imageContainer1'), messages1);            
         });
 
         // Feature 1: Send text to server for assistant 2
         document.getElementById('submitButton2').addEventListener('click', function () {
             let inputText = document.getElementById('inputText2').value;
-            submit(inputText, document.getElementById('imageContainer2'), messages2);
+            submit("https://ipfs.io/ipfs/QmSSYqG7FmhYsD8X7awq1dgE8J4avUtc3Ddm7vtYq49MTU", inputText, document.getElementById('imageContainer2'), messages2);
         });
 
         // Feature 3: Chat Service for assistant 1
